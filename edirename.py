@@ -8,9 +8,9 @@ import csv
 
 # Variables
 # Windows OS
-base_dir = "M:\\EDI\\"
-in_dir = base_dir + "IN"
-staging_dir = base_dir + "STAGING"
+base_dir = os.path.join("M:", "EDI")
+in_dir = os.path.join(base_dir, "IN")
+staging_dir = os.path.join(base_dir, "STAGING")
 
 # Test directories
 # base_dir = "/tmp/data/"
@@ -47,7 +47,7 @@ def process_staging_dir():
 ### HOP
 ###############################################################################
 def get_ship_from_husq(filename):
-    filename = staging_dir + filename
+    filename = os.path.join(staging_dir, filename)
     with open(filename) as csvfile:
         csvfile = csvfile.read().split('~')
         readCSV = csv.reader(csvfile, delimiter='*')
@@ -55,10 +55,14 @@ def get_ship_from_husq(filename):
             for idx, cell in enumerate(row):
                 if cell == "SF":
                     sf_cell = row[idx+1]
-    if sf_cell == "THOMSON PLASTICS":
-        sf = "THM"
-    if sf_cell == "THOMSON PLAS. LEXINGTON":
-        sf = "LEX"
+    try:
+        if sf_cell == "THOMSON PLASTICS":
+            sf = "THM"
+        if sf_cell == "THOMSON PLAS. LEXINGTON":
+            sf = "LEX"
+    except:
+        print("Ship From not found in file")
+        sf = "MISSING"
     return sf
 
 
@@ -73,12 +77,16 @@ def rename_file_husq(filename):
     f_type = f_type_idx[:3]  # The first 3 characters make up the EDI type
     f_idx = f_type_idx[3:]  # The remaining characters are the index
 
-    # Get Ship From Location
-    sf = get_ship_from_husq(filename)
+    # Get Ship From location from 850s only
+    if f_type == "850":
+        sf = get_ship_from_husq(filename)
+        new_filename = f_prefix + sep + sf + sep + f_type + sep + f_idx + f_ext
+    else:
+        new_filename = f_prefix + sep + f_type + sep + f_idx + f_ext
 
-    old_filename = staging_dir + filename
-    new_filename = in_dir + f_prefix + sep + sf + sep + f_type + sep + f_idx + f_ext
-    # os.rename(old_filename, new_filename)
+    old_filename = os.path.join(staging_dir, filename)
+    new_filename = os.path.join(in_dir, new_filename)
+    os.rename(old_filename, new_filename)
     print(old_filename + '  >  ' + new_filename)
 ###############################################################################
 ###############################################################################
