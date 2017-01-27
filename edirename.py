@@ -38,9 +38,13 @@ def get_sf_segment(file_name):
 
 
 def process_staging_dir():
+    print("\nProcessing files in " + staging_dir)
     filenames = os.listdir(staging_dir)
-    for filename in filenames:
-        rename_file_husq(filename)
+    if filenames:
+        for filename in filenames:
+            rename_file_husq(filename)
+    else:
+        print("No files found")
 
 
 ###############################################################################
