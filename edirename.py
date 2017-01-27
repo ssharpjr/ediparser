@@ -2,20 +2,19 @@
 
 # Rename EDI files based on ISA and type.
 
+###############################################################################
+# Change Log:
+#   * 27-Jan-2017: Initial release. Husqvarna added.
+###############################################################################
+
 import os
 import sys
 import csv
 
 # Variables
-# Windows OS
 base_dir = os.path.join("M:", "EDI")
 in_dir = os.path.join(base_dir, "IN")
 staging_dir = os.path.join(base_dir, "STAGING")
-
-# Test directories
-# base_dir = "/tmp/data/"
-# in_dir = base_dir + "IN/"
-# staging_dir = base_dir + "STAGING/"
 
 
 def show_segments():
