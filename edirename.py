@@ -1,3 +1,4 @@
+#! python3
 #! /usr/bin/env python3
 # -*- encoding: utf-8 -*-
 
@@ -5,16 +6,17 @@
 
 ###############################################################################
 # Change Log:
+#   * 17-Feb-2017: Added a catchall that moves all remaining files.
 #   * 27-Jan-2017: Initial release. Husqvarna added.
 ###############################################################################
 
 import os
 import csv
 
-# Variables
+# File Paths are for Windows OS
 base_dir = os.path.join("M:", "EDI")
-in_dir = os.path.join(base_dir, "_TEST")
-staging_dir = os.path.join(base_dir, "STAGING")
+in_dir = os.path.join(base_dir, "IN")
+staging_dir = os.path.join(base_dir, "IN\\STAGING")
 
 
 def show_segments(file_name):
@@ -43,18 +45,22 @@ def process_staging_dir():
         for filename in filenames:
             # Process each file based on customer functions
             rename_file_husq(filename)
-            # Move any files left over
-            move_remaining_files(filename)
+        # Move any files left over
+        move_remaining_files(filename)
     else:
         print("No files found")
 
 
 def move_remaining_files(filename):
     # Move any remaing files from STAGING to IN
-    old_filename = os.path.join(staging_dir, filename)
-    new_filename = os.path.join(in_dir, filename)
-    os.rename(old_filename, new_filename)
-    print(old_filename + '  >  ' + new_filename)
+    print("\nMoving remaining files")
+    filenames = os.listdir(staging_dir)
+    if filenames:
+        for filename in filenames:
+            old_filename = os.path.join(staging_dir, filename)
+            new_filename = os.path.join(in_dir, filename)
+            os.rename(old_filename, new_filename)
+            print(old_filename + '  >  ' + new_filename)
 
 
 ###############################################################################
@@ -82,6 +88,9 @@ def get_ship_from_husq(filename):
 
 def rename_file_husq(filename):
     f = filename
+    if not f.startswith('HOP'):
+        return
+
     sep = '_'  # File separator
     f_ext = '.txt'  # File extension
     f = os.path.splitext(f)[0]  # Strip extension
@@ -91,12 +100,8 @@ def rename_file_husq(filename):
     f_type = f_type_idx[:3]  # The first 3 characters make up the EDI type
     f_idx = f_type_idx[3:]  # The remaining characters are the index
 
-    # Identify Husq Files
-    if f_prefix != 'HOPOBURG' or 'HOPMCRAE':
-        return
-
-    # Get Ship From location from 850s only
-    if f_type == "850":
+    # Get Ship From location from 850s and 860s only
+    if f_type == "850" or f_type == "860":
         sf = get_ship_from_husq(filename)
         new_filename = f_prefix + sep + sf + sep + f_type + sep + f_idx + f_ext
     else:
