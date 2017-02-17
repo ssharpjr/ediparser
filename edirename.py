@@ -1,4 +1,5 @@
 #! /usr/bin/env python3
+# -*- encoding: utf-8 -*-
 
 # Rename EDI files based on ISA and type.
 
@@ -8,17 +9,16 @@
 ###############################################################################
 
 import os
-import sys
 import csv
 
 # Variables
 base_dir = os.path.join("M:", "EDI")
-in_dir = os.path.join(base_dir, "IN")
+in_dir = os.path.join(base_dir, "_TEST")
 staging_dir = os.path.join(base_dir, "STAGING")
 
 
-def show_segments():
-    lines = open(test_file).read().split("~")
+def show_segments(file_name):
+    lines = open(file_name).read().split("~")
     for line in lines:
         print("\n\nProcessing line: %s\n" % line)
         cells = line.split("*")
@@ -41,13 +41,24 @@ def process_staging_dir():
     filenames = os.listdir(staging_dir)
     if filenames:
         for filename in filenames:
+            # Process each file based on customer functions
             rename_file_husq(filename)
+            # Move any files left over
+            move_remaining_files(filename)
     else:
         print("No files found")
 
 
+def move_remaining_files(filename):
+    # Move any remaing files from STAGING to IN
+    old_filename = os.path.join(staging_dir, filename)
+    new_filename = os.path.join(in_dir, filename)
+    os.rename(old_filename, new_filename)
+    print(old_filename + '  >  ' + new_filename)
+
+
 ###############################################################################
-### HOP
+# Husqvarna Begin
 ###############################################################################
 def get_ship_from_husq(filename):
     filename = os.path.join(staging_dir, filename)
@@ -80,6 +91,10 @@ def rename_file_husq(filename):
     f_type = f_type_idx[:3]  # The first 3 characters make up the EDI type
     f_idx = f_type_idx[3:]  # The remaining characters are the index
 
+    # Identify Husq Files
+    if f_prefix != 'HOPOBURG' or 'HOPMCRAE':
+        return
+
     # Get Ship From location from 850s only
     if f_type == "850":
         sf = get_ship_from_husq(filename)
@@ -92,8 +107,8 @@ def rename_file_husq(filename):
     os.rename(old_filename, new_filename)
     print(old_filename + '  >  ' + new_filename)
 ###############################################################################
+# Husqvarna End
 ###############################################################################
-
 
 
 if __name__ == '__main__':
