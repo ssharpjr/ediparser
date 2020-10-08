@@ -13,10 +13,10 @@ import os
 import csv
 
 # File Paths are for Windows OS
-base_dir = os.path.join("M:", "EDI")
-in_dir = os.path.join(base_dir, "IN")
-staging_dir = os.path.join(base_dir, "IN\\STAGING")
-staging_dir_test = os.path.join(base_dir, "IN\\TEST")
+base_dir = os.path.join("M:", "\EDI")
+in_dir = os.path.join(base_dir, "\IN")
+staging_dir = os.path.join(base_dir, "IN\STAGING")
+staging_dir_test = os.path.join(base_dir, "IN\TEST")
 
 
 def show_segments(file_name):
@@ -40,7 +40,7 @@ def get_sf_segment(file_name):
 def get_isa(filename):
     with open(filename) as csvfile:
         csvfile = csvfile.read().split("~")
-        readCSV - csv.reader(csvfile, delimiter="*")
+        readCSV = csv.reader(csvfile, delimiter="*")
         for row in readCSV:
             for idx, cell in enumerate(row):
                 isa = row[idx+6].rstrip()
@@ -108,6 +108,7 @@ def get_ship_from_husq(filename):
 
 
 def rename_file_husq(filename):
+    filename = os.path.join(staging_dir, filename)
     f = filename
     isa = get_isa(f)
     if isa != "HUSQORNGBRG":
@@ -131,9 +132,10 @@ def rename_file_husq(filename):
     else:
         new_filename = f_prefix + sep + f_type + sep + f_date + sep + f_idx + f_ext
 
+    print(new_filename)
     old_filename = os.path.join(staging_dir, filename)
-    # new_filename = os.path.join(in_dir, new_filename)
-    new_filename = os.path.join(staging_dir_test, new_filename)
+    new_filename = os.path.join(in_dir, new_filename)
+    # new_filename = os.path.join(staging_dir_test, new_filename)
     os.rename(old_filename, new_filename)
     print(old_filename + '  >  ' + new_filename)
 ###############################################################################
