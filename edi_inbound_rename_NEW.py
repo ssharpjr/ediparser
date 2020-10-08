@@ -14,7 +14,7 @@ import csv
 
 # File Paths are for Windows OS
 base_dir = os.path.join("M:", "\EDI")
-in_dir = os.path.join(base_dir, "\IN")
+in_dir = os.path.join(base_dir, "IN")
 staging_dir = os.path.join(base_dir, "IN\STAGING")
 staging_dir_test = os.path.join(base_dir, "IN\TEST")
 
@@ -80,6 +80,7 @@ def move_remaining_files(filename):
         for filename in filenames:
             old_filename = os.path.join(staging_dir, filename)
             new_filename = os.path.join(in_dir, filename)
+            # new_filename = os.path.join(staging_dir_test, filename)
             os.rename(old_filename, new_filename)
             print(old_filename + '  >  ' + new_filename)
 
@@ -108,31 +109,36 @@ def get_ship_from_husq(filename):
 
 
 def rename_file_husq(filename):
-    filename = os.path.join(staging_dir, filename)
-    f = filename
-    isa = get_isa(f)
-    if isa != "HUSQORNGBRG":
-        return
+    f = filename  # Raw file name
+    f_path = os.path.join(staging_dir, filename)  # file name with path
+    
 
+    # Check if in ECGrid format.
     # ECGrid file format: 1027-20201006101520-2e7441af.edi
-
+    if not f.startswith("1027"):
+        # Not an ECGrid file
+        return
+    
     sep = "-" # File separator
     f_ext = ".edi"  # File extension
     f = os.path.splitext(f)[0]  # Strip extension
-    f_list = f.split(sep)  # Make a list from the split
-    f_prefix = "HUSQ"  # Set the customer name
+    f_list = f.split(sep)  # Make a list from the split    
     f_date = f_list[1]  # The second piece is the date code
     f_idx = f_list[2]  # The third piece is the index
-    f_type = get_file_type(filename)
+    f_type = get_file_type(f_path)
+
+
+    isa = get_isa(f_path)
+    if isa != "HUSQORNGBRG":
+        return
 
     # Get Ship From location from 850s and 860s only
     if f_type == "850" or f_type == "860":
-        sf = get_ship_from_husq(filename)
-        new_filename = f_prefix + sep + sf + sep + f_type + sep + f_date + sep + f_idx + f_ext
+        sf = get_ship_from_husq(f_path)
+        new_filename = "HUSQ" + sep + sf + sep + f_type + sep + f_date + sep + f_idx + f_ext
     else:
-        new_filename = f_prefix + sep + f_type + sep + f_date + sep + f_idx + f_ext
+        new_filename = "HUSQ" + sep + f_type + sep + f_date + sep + f_idx + f_ext
 
-    print(new_filename)
     old_filename = os.path.join(staging_dir, filename)
     new_filename = os.path.join(in_dir, new_filename)
     # new_filename = os.path.join(staging_dir_test, new_filename)
