@@ -77,12 +77,28 @@ def get_file_type(filename):
 
 
 def process_staging_dir():
+    # TODO: Pop renamed files off the filenames stack. Make this one loop.
     print("\nProcessing files in " + staging_dir)
     filenames = os.listdir(staging_dir)
     if filenames:
         for filename in filenames:
             # Process each file based on customer functions
             rename_file_husq(filename)
+
+    filenames = os.listdir(staging_dir)
+    if filenames:
+        for filename in filenames:
+            # Process each file based on customer functions
+            rename_file_autoneum(filename)
+
+    filenames = os.listdir(staging_dir)
+    if filenames:
+        for filename in filenames:
+            # Process each file based on customer functions
+            rename_file_navistar(filename)
+
+        filenames = os.listdir(staging_dir)
+    if filenames:
         # Move any files left over
         move_remaining_files(filename)
     else:
