@@ -2,15 +2,32 @@
 # -*- encoding: utf-8 -*-
 
 # Rename EDI files based on ISA and type.
+# Each customer gets their own section, even though there may be 
+#   duplicated functionality.
+# This allows for easier future changes.
 
 ###############################################################################
 # Change Log:
+#   * 12-Oct_2020: Added Autoneum and Navistar
+#   * 08-Oct-2020: Updated Husqvarna to the ECGrid format.
 #   * 17-Feb-2017: Added a catchall that moves all remaining files.
 #   * 27-Jan-2017: Initial release. Husqvarna added.
 ###############################################################################
 
 import os
 import csv
+
+
+# ISA Codes
+autoneum_isa = "GLII006"
+ga_alabama_isa = "US080765057LBM"
+ga_howell_isa = "609284922"
+ga_shelby_isa = "080647135"
+ga_spartanburg_isa = "US080950568SPA"
+ga_tennessee_isa = "GA808659114"
+husqvarna_isa = "HUSQORNGBRG"
+navistar_isa = "781495650"
+
 
 # File Paths are for Windows OS
 base_dir = os.path.join("M:", "\EDI")
@@ -111,14 +128,13 @@ def get_ship_from_husq(filename):
 def rename_file_husq(filename):
     f = filename  # Raw file name
     f_path = os.path.join(staging_dir, filename)  # file name with path
-    
 
     # Check if in ECGrid format.
     # ECGrid file format: 1027-20201006101520-2e7441af.edi
     if not f.startswith("1027"):
         # Not an ECGrid file
         return
-    
+
     sep = "-" # File separator
     f_ext = ".edi"  # File extension
     f = os.path.splitext(f)[0]  # Strip extension
@@ -129,7 +145,7 @@ def rename_file_husq(filename):
 
 
     isa = get_isa(f_path)
-    if isa != "HUSQORNGBRG":
+    if isa != husqvarna_isa:
         return
 
     # Get Ship From location from 850s and 860s only
@@ -146,6 +162,78 @@ def rename_file_husq(filename):
     print(old_filename + '  >  ' + new_filename)
 ###############################################################################
 # Husqvarna End
+###############################################################################
+
+
+###############################################################################
+# Autoneum Begin
+###############################################################################
+def rename_file_autoneum(filename):
+    f = filename  # Raw file name
+    f_path = os.path.join(staging_dir, filename)  # file name with path
+
+    # Check if in ECGrid format.
+    # ECGrid file format: 1027-20201006101520-2e7441af.edi
+    if not f.startswith("1027"):
+        # Not an ECGrid file
+        return
+
+    sep = "-" # File separator
+    f_ext = ".edi"  # File extension
+    f = os.path.splitext(f)[0]  # Strip extension
+    f_list = f.split(sep)  # Make a list from the split    
+    f_date = f_list[1]  # The second piece is the date code
+    f_idx = f_list[2]  # The third piece is the index
+    f_type = get_file_type(f_path)
+
+
+    isa = get_isa(f_path)
+    if isa != autoneum_isa:
+        return
+
+    new_filename = "AUTONEUM" + sep + f_type + sep + f_date + sep + f_idx + f_ext
+    old_filename = os.path.join(staging_dir, filename)
+    new_filename = os.path.join(in_dir, new_filename)
+    os.rename(old_filename, new_filename)
+    print(old_filename + '  >  ' + new_filename)
+###############################################################################
+# Autoneum End
+###############################################################################
+
+
+###############################################################################
+# Navistar Begin
+###############################################################################
+def rename_file_navistar(filename):
+    f = filename  # Raw file name
+    f_path = os.path.join(staging_dir, filename)  # file name with path
+
+    # Check if in ECGrid format.
+    # ECGrid file format: 1027-20201006101520-2e7441af.edi
+    if not f.startswith("1027"):
+        # Not an ECGrid file
+        return
+
+    sep = "-" # File separator
+    f_ext = ".edi"  # File extension
+    f = os.path.splitext(f)[0]  # Strip extension
+    f_list = f.split(sep)  # Make a list from the split    
+    f_date = f_list[1]  # The second piece is the date code
+    f_idx = f_list[2]  # The third piece is the index
+    f_type = get_file_type(f_path)
+
+
+    isa = get_isa(f_path)
+    if isa != navistar_isa:
+        return
+
+    new_filename = "NAVISTAR" + sep + f_type + sep + f_date + sep + f_idx + f_ext
+    old_filename = os.path.join(staging_dir, filename)
+    new_filename = os.path.join(in_dir, new_filename)
+    os.rename(old_filename, new_filename)
+    print(old_filename + '  >  ' + new_filename)
+###############################################################################
+# Navistar End
 ###############################################################################
 
 
