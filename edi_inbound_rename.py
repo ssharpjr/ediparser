@@ -83,19 +83,28 @@ def process_staging_dir():
     if filenames:
         for filename in filenames:
             # Process each file based on customer functions
-            rename_file_husq(filename)
+            try:
+                rename_file_husq(filename)
+            except:
+                continue
 
     filenames = os.listdir(staging_dir)
     if filenames:
         for filename in filenames:
             # Process each file based on customer functions
-            rename_file_autoneum(filename)
+            try:
+                rename_file_autoneum(filename)
+            except:
+                continue
 
     filenames = os.listdir(staging_dir)
     if filenames:
         for filename in filenames:
             # Process each file based on customer functions
-            rename_file_navistar(filename)
+            try:
+                rename_file_navistar(filename)
+            except:
+                continue
 
         filenames = os.listdir(staging_dir)
     if filenames:
