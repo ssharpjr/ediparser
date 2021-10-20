@@ -8,7 +8,8 @@
 
 ###############################################################################
 # Change Log:
-#   * 12-Oct_2020: Added Autoneum and Navistar
+#   * 20-Oct-2021: Added OWT/Ryobi and Auria
+#   * 12-Oct-2020: Added Autoneum and Navistar
 #   * 08-Oct-2020: Updated Husqvarna to the ECGrid format.
 #   * 17-Feb-2017: Added a catchall that moves all remaining files.
 #   * 27-Jan-2017: Initial release. Husqvarna added.
@@ -70,7 +71,7 @@ def get_isa_x12(filename):
                 return isa
 
 
-def get_file_type(filename):
+def get_file_type_x12(filename):
     # The cell after the 'ST' segment
     with open(filename) as csvfile:
         csvfile = csvfile.read().split('~')
@@ -128,7 +129,16 @@ def process_staging_dir():
             try:
                 rename_file_auria(filename)
             except:
-                continue        
+                continue
+
+    filenames = os.listdir(staging_dir)
+    if filenames:
+        for filename in filenames:
+            # Process each file based on customer functions
+            try:
+                rename_file_gahowell(filename)
+            except:
+                continue          
 
         filenames = os.listdir(staging_dir)
     if filenames:
@@ -150,6 +160,12 @@ def move_remaining_files(filename):
             os.rename(old_filename, new_filename)
             print(old_filename + '  >  ' + new_filename)
 
+
+###############################################################################
+###############################################################################
+# X12 Format Files
+###############################################################################
+###############################################################################
 
 ###############################################################################
 # Husqvarna (X12) Begin
@@ -190,7 +206,7 @@ def rename_file_husq(filename):
     f_list = f.split(sep)  # Make a list from the split    
     f_date = f_list[1]  # The second piece is the date code
     f_idx = f_list[2]  # The third piece is the index
-    f_type = get_file_type(f_path)
+    f_type = get_file_type_x12(f_path)
 
 
     isa = get_isa_x12(f_path)
@@ -212,7 +228,6 @@ def rename_file_husq(filename):
 ###############################################################################
 # Husqvarna End
 ###############################################################################
-
 
 ###############################################################################
 # Autoneum (X12) Begin
@@ -239,7 +254,7 @@ def rename_file_autoneum(filename):
     f_list = f.split(sep)  # Make a list from the split    
     f_date = f_list[1]  # The second piece is the date code
     f_idx = f_list[2]  # The third piece is the index
-    f_type = get_file_type(f_path)
+    f_type = get_file_type_x12(f_path)
 
 
     isa = get_isa_x12(f_path)
@@ -254,7 +269,6 @@ def rename_file_autoneum(filename):
 ###############################################################################
 # Autoneum End
 ###############################################################################
-
 
 ###############################################################################
 # Navistar (X12) Begin
@@ -275,7 +289,7 @@ def rename_file_navistar(filename):
     f_list = f.split(sep)  # Make a list from the split    
     f_date = f_list[1]  # The second piece is the date code
     f_idx = f_list[2]  # The third piece is the index
-    f_type = get_file_type(f_path)
+    f_type = get_file_type_x12(f_path)
 
 
     isa = get_isa_x12(f_path)
@@ -290,7 +304,6 @@ def rename_file_navistar(filename):
 ###############################################################################
 # Navistar End
 ###############################################################################
-
 
 ###############################################################################
 # OWT/TTI/Ryobi (X12) Begin
@@ -311,7 +324,7 @@ def rename_file_owt(filename):
     f_list = f.split(sep)  # Make a list from the split    
     f_date = f_list[1]  # The second piece is the date code
     f_idx = f_list[2]  # The third piece is the index
-    f_type = get_file_type(f_path)
+    f_type = get_file_type_x12(f_path)
 
 
     isa = get_isa_x12(f_path)
@@ -326,7 +339,6 @@ def rename_file_owt(filename):
 ###############################################################################
 # OWT/TTI/Ryobi End
 ###############################################################################
-
 
 ###############################################################################
 # Auria (X12) Begin
@@ -347,7 +359,7 @@ def rename_file_auria(filename):
     f_list = f.split(sep)  # Make a list from the split    
     f_date = f_list[1]  # The second piece is the date code
     f_idx = f_list[2]  # The third piece is the index
-    f_type = get_file_type(f_path)
+    f_type = get_file_type_x12(f_path)
 
 
     isa = get_isa_x12(f_path)
@@ -361,6 +373,48 @@ def rename_file_auria(filename):
     print(old_filename + '  >  ' + new_filename)
 ###############################################################################
 # Auria End
+###############################################################################
+
+###############################################################################
+# Grupo-Antolin Howell (X12) Begin
+###############################################################################
+def rename_file_gahowell(filename):
+    f = filename  # Raw file name
+    f_path = os.path.join(staging_dir, filename)  # file name with path
+
+    # Check if in ECGrid format.
+    # ECGrid file format: 1027-20201006101520-2e7441af.edi
+    if not f.startswith("1027"):
+        # Not an ECGrid file
+        return
+
+    sep = "-" # File separator
+    f_ext = ".edi"  # File extension
+    f = os.path.splitext(f)[0]  # Strip extension
+    f_list = f.split(sep)  # Make a list from the split    
+    f_date = f_list[1]  # The second piece is the date code
+    f_idx = f_list[2]  # The third piece is the index
+    f_type = get_file_type_x12(f_path)
+
+
+    isa = get_isa_x12(f_path)
+    if isa != ga_howell_isa:
+        return
+
+    new_filename = "GAHOWELL" + sep + f_type + sep + f_date + sep + f_idx + f_ext
+    old_filename = os.path.join(staging_dir, filename)
+    new_filename = os.path.join(in_dir, new_filename)
+    os.rename(old_filename, new_filename)
+    print(old_filename + '  >  ' + new_filename)
+###############################################################################
+# Grupo-Antolin Howell End
+###############################################################################
+
+
+###############################################################################
+###############################################################################
+# EDIFACT Format Files
+###############################################################################
 ###############################################################################
 
 
