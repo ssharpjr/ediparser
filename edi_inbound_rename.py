@@ -8,7 +8,7 @@
 
 ###############################################################################
 # Change Log:
-#   * 20-Oct-2021: Added OWT/Ryobi and Auria
+#   * 20-Oct-2021: Added OWT/Ryobi, Auria, GAHowell, GAShelby
 #   * 12-Oct-2020: Added Autoneum and Navistar
 #   * 08-Oct-2020: Updated Husqvarna to the ECGrid format.
 #   * 17-Feb-2017: Added a catchall that moves all remaining files.
@@ -16,7 +16,7 @@
 ###############################################################################
 
 import os
-import csv
+import re
 
 
 # ISA Codes
@@ -43,24 +43,6 @@ staging_dir = os.path.join(base_dir, "IN\STAGING")
 # staging_dir = staging_dir_test
 
 
-def show_segments(file_name):
-    lines = open(file_name).read().split("~")
-    for line in lines:
-        print("\n\nProcessing line: %s\n" % line)
-        cells = line.split("*")
-        for i, cell in enumerate(cells):
-            print("%d: %s" % (i, cell))
-
-
-def get_sf_segment(file_name):
-    f = open(file_name).read().split("~")
-    for line in f:
-        cells = line.split("*")
-        for i, cell in enumerate(cells):
-            if cell == 'sf':
-                print(i)
-                print(cell)
-
 def get_isa_x12(filename):
     with open(filename) as csvfile:
         csvfile = csvfile.read().split("~")
@@ -83,9 +65,39 @@ def get_file_type_x12(filename):
                     return st_cell
 
 
+def get_isa_edifact(filename):
+    line_idx = None
+    with open(filename) as edifile:
+        edifile = edifile.read().split("'")
+        if edifile[0].startswith("UNB"):
+            line_idx = 2
+        if edifile[0].startswith("UNA"):
+            line_idx = 3
+        line = re.split(r'\+', str(edifile))
+        cell = re.split(':', str(line[line_idx]))
+        isa = cell[0]
+        return isa
+
+
+def get_file_type_edifact(filename):
+    line_idx = None
+    with open(filename) as edifile:
+        edifile = edifile.read().split("'")
+        if edifile[0].startswith("UNB"):
+            line_idx = 1
+        if edifile[0].startswith("UNA"):
+            line_idx = 2
+        line = re.split(r'\+', str(edifile[line_idx]))
+        cell = re.split(r':', str(line[2]))
+        file_type = cell[0]
+        return file_type
+
+
 def process_staging_dir():
     # TODO: Pop renamed files off the filenames stack. Make this one loop.
     print("\nProcessing files in " + staging_dir)
+
+    print("\nProcessing Husqvarna")
     filenames = os.listdir(staging_dir)
     if filenames:
         for filename in filenames:
@@ -95,6 +107,7 @@ def process_staging_dir():
             except:
                 continue
 
+    print("\nProcessing Autoneum")
     filenames = os.listdir(staging_dir)
     if filenames:
         for filename in filenames:
@@ -104,6 +117,7 @@ def process_staging_dir():
             except:
                 continue
 
+    print("\nProcessing Navistar")
     filenames = os.listdir(staging_dir)
     if filenames:
         for filename in filenames:
@@ -113,6 +127,7 @@ def process_staging_dir():
             except:
                 continue
     
+    print("\nProcessing OWT/Ryobi")
     filenames = os.listdir(staging_dir)
     if filenames:
         for filename in filenames:
@@ -122,6 +137,7 @@ def process_staging_dir():
             except:
                 continue
 
+    print("\nProcessing Auria")
     filenames = os.listdir(staging_dir)
     if filenames:
         for filename in filenames:
@@ -131,6 +147,7 @@ def process_staging_dir():
             except:
                 continue
 
+    print("\nProcessing GA Howell")
     filenames = os.listdir(staging_dir)
     if filenames:
         for filename in filenames:
@@ -138,9 +155,19 @@ def process_staging_dir():
             try:
                 rename_file_gahowell(filename)
             except:
-                continue          
+                continue
+    
+    print("\nProcessing GA Shelby")
+    filenames = os.listdir(staging_dir)
+    if filenames:
+        for filename in filenames:
+            # Process each file based on customer functions
+            try:
+                rename_file_gashelby(filename)
+            except:
+                continue
 
-        filenames = os.listdir(staging_dir)
+    filenames = os.listdir(staging_dir)
     if filenames:
         # Move any files left over
         move_remaining_files(filename)
@@ -149,7 +176,7 @@ def process_staging_dir():
 
 
 def move_remaining_files(filename):
-    # Move any remaing files from STAGING to IN
+    # Move any remaining files from STAGING to IN
     print("\nMoving remaining files")
     filenames = os.listdir(staging_dir)
     if filenames:
@@ -417,6 +444,42 @@ def rename_file_gahowell(filename):
 ###############################################################################
 ###############################################################################
 
+###############################################################################
+# Grupo-Antolin Shelby (EDIFACT) Begin
+###############################################################################
+def rename_file_gashelby(filename):
+    f = filename  # Raw file name
+    f_path = os.path.join(staging_dir, filename)  # file name with path
+
+    # Check if in ECGrid format.
+    # ECGrid file format: 1027-20201006101520-2e7441af.edi
+    if not f.startswith("1027"):
+        # Not an ECGrid file
+        return
+
+    sep = "-" # File separator
+    f_ext = ".edi"  # File extension
+    f = os.path.splitext(f)[0]  # Strip extension
+    f_list = f.split(sep)  # Make a list from the split    
+    f_date = f_list[1]  # The second piece is the date code
+    f_idx = f_list[2]  # The third piece is the index
+    f_type = get_file_type_edifact(f_path)
+
+
+    isa = get_isa_edifact(f_path)
+    if isa != ga_shelby_isa:
+        return
+
+    new_filename = "GASHELBY" + sep + f_type + sep + f_date + sep + f_idx + f_ext
+    old_filename = os.path.join(staging_dir, filename)
+    new_filename = os.path.join(in_dir, new_filename)
+    os.rename(old_filename, new_filename)
+    print(old_filename + '  >  ' + new_filename)
+
+
+###############################################################################
+# Grupo-Antolin Shelby End
+###############################################################################
 
 if __name__ == '__main__':
     process_staging_dir()
