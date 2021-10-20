@@ -8,7 +8,7 @@
 
 ###############################################################################
 # Change Log:
-#   * 20-Oct-2021: Added OWT/Ryobi, Auria, GAHowell, GAShelby
+#   * 20-Oct-2021: Added OWT/Ryobi, Auria, GAHowell, GAShelby, GASPA, GAAL
 #   * 12-Oct-2020: Added Autoneum and Navistar
 #   * 08-Oct-2020: Updated Husqvarna to the ECGrid format.
 #   * 17-Feb-2017: Added a catchall that moves all remaining files.
@@ -147,7 +147,7 @@ def process_staging_dir():
             except:
                 continue
 
-    print("\nProcessing GA Howell")
+    print("\nProcessing Grupo-Antolin Howell (X12)")
     filenames = os.listdir(staging_dir)
     if filenames:
         for filename in filenames:
@@ -157,13 +157,33 @@ def process_staging_dir():
             except:
                 continue
     
-    print("\nProcessing GA Shelby")
+    print("\nProcessing Grupo-Antolin Spartanburg (X12)")
+    filenames = os.listdir(staging_dir)
+    if filenames:
+        for filename in filenames:
+            # Process each file based on customer functions
+            try:
+                rename_file_gaspartanburg(filename)
+            except:
+                continue
+    
+    print("\nProcessing Grupo-Antolin Shelby")
     filenames = os.listdir(staging_dir)
     if filenames:
         for filename in filenames:
             # Process each file based on customer functions
             try:
                 rename_file_gashelby(filename)
+            except:
+                continue
+    
+    print("\nProcessing Grupo-Antolin Alabama")
+    filenames = os.listdir(staging_dir)
+    if filenames:
+        for filename in filenames:
+            # Process each file based on customer functions
+            try:
+                rename_file_gaalabama(filename)
             except:
                 continue
 
@@ -437,6 +457,41 @@ def rename_file_gahowell(filename):
 # Grupo-Antolin Howell End
 ###############################################################################
 
+###############################################################################
+# Grupo-Antolin Spartanburg (X12) Begin
+###############################################################################
+def rename_file_gaspartanburg(filename):
+    f = filename  # Raw file name
+    f_path = os.path.join(staging_dir, filename)  # file name with path
+
+    # Check if in ECGrid format.
+    # ECGrid file format: 1027-20201006101520-2e7441af.edi
+    if not f.startswith("1027"):
+        # Not an ECGrid file
+        return
+
+    sep = "-" # File separator
+    f_ext = ".edi"  # File extension
+    f = os.path.splitext(f)[0]  # Strip extension
+    f_list = f.split(sep)  # Make a list from the split    
+    f_date = f_list[1]  # The second piece is the date code
+    f_idx = f_list[2]  # The third piece is the index
+    f_type = get_file_type_x12(f_path)
+
+
+    isa = get_isa_x12(f_path)
+    if isa != ga_spartanburg_isa:
+        return
+
+    new_filename = "GASPARTANBURG" + sep + f_type + sep + f_date + sep + f_idx + f_ext
+    old_filename = os.path.join(staging_dir, filename)
+    new_filename = os.path.join(in_dir, new_filename)
+    os.rename(old_filename, new_filename)
+    print(old_filename + '  >  ' + new_filename)
+###############################################################################
+# Grupo-Antolin Spartanburg End
+###############################################################################
+
 
 ###############################################################################
 ###############################################################################
@@ -479,6 +534,43 @@ def rename_file_gashelby(filename):
 
 ###############################################################################
 # Grupo-Antolin Shelby End
+###############################################################################
+
+###############################################################################
+# Grupo-Antolin Alabama (EDIFACT) Begin
+###############################################################################
+def rename_file_gaalabama(filename):
+    f = filename  # Raw file name
+    f_path = os.path.join(staging_dir, filename)  # file name with path
+
+    # Check if in ECGrid format.
+    # ECGrid file format: 1027-20201006101520-2e7441af.edi
+    if not f.startswith("1027"):
+        # Not an ECGrid file
+        return
+
+    sep = "-" # File separator
+    f_ext = ".edi"  # File extension
+    f = os.path.splitext(f)[0]  # Strip extension
+    f_list = f.split(sep)  # Make a list from the split    
+    f_date = f_list[1]  # The second piece is the date code
+    f_idx = f_list[2]  # The third piece is the index
+    f_type = get_file_type_edifact(f_path)
+
+
+    isa = get_isa_edifact(f_path)
+    if isa != ga_alabama_isa:
+        return
+
+    new_filename = "GAALABAMA" + sep + f_type + sep + f_date + sep + f_idx + f_ext
+    old_filename = os.path.join(staging_dir, filename)
+    new_filename = os.path.join(in_dir, new_filename)
+    os.rename(old_filename, new_filename)
+    print(old_filename + '  >  ' + new_filename)
+
+
+###############################################################################
+# Grupo-Antolin Alabama End
 ###############################################################################
 
 if __name__ == '__main__':
