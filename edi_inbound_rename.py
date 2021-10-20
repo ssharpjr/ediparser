@@ -8,7 +8,8 @@
 
 ###############################################################################
 # Change Log:
-#   * 20-Oct-2021: Added OWT/Ryobi, Auria, GAHowell, GAShelby, GASPA, GAAL
+#   * 20-Oct-2021: Added OWT/Ryobi, Auria, GA-Howell, GA-Shelby, GA-SPA, GA-AL,
+#                  GATN, GA-Silao, GA-StClair, GA-Marlette
 #   * 12-Oct-2020: Added Autoneum and Navistar
 #   * 08-Oct-2020: Updated Husqvarna to the ECGrid format.
 #   * 17-Feb-2017: Added a catchall that moves all remaining files.
@@ -17,19 +18,23 @@
 
 import os
 import re
+import csv
 
 
 # ISA Codes
 autoneum_isa = "GLII006"
-ga_alabama_isa = "US080765057LBM"
-ga_howell_isa = "609284922"
-ga_shelby_isa = "080647135"
-ga_spartanburg_isa = "US080950568SPA"
-ga_tennessee_isa = "GA808659114"
 husqvarna_isa = "HUSQORNGBRG"
 navistar_isa = "781495650"
 owt_isa = "827942173"
 auria_isa = "ONCBUSUPPU"
+ga_alabama_isa = "US080765057LBM"
+ga_howell_isa = "609284922"
+ga_shelby_isa = "080647135"
+ga_spartanburg_isa = "US080950568SPA"
+ga_tn_isa = "GA808659114"
+ga_silao_isa = "GAS9403186J1"
+ga_stclair_isa = "US117778503SCL"
+ga_marlette_isa = "GA132713012"
 
 
 # File Paths are for Windows OS
@@ -163,11 +168,31 @@ def process_staging_dir():
         for filename in filenames:
             # Process each file based on customer functions
             try:
-                rename_file_gaspartanburg(filename)
+                rename_file_gaspa(filename)
+            except:
+                continue
+
+    print("\nProcessing Grupo-Antolin Marlette (X12)")
+    filenames = os.listdir(staging_dir)
+    if filenames:
+        for filename in filenames:
+            # Process each file based on customer functions
+            try:
+                rename_file_gamarlette(filename)
             except:
                 continue
     
-    print("\nProcessing Grupo-Antolin Shelby")
+    print("\nProcessing Grupo-Antolin Spartanburg (EDIFACT)")
+    filenames = os.listdir(staging_dir)
+    if filenames:
+        for filename in filenames:
+            # Process each file based on customer functions
+            try:
+                rename_file_gaspa_edifact(filename)
+            except:
+                continue
+    
+    print("\nProcessing Grupo-Antolin Shelby (EDIFACT)")
     filenames = os.listdir(staging_dir)
     if filenames:
         for filename in filenames:
@@ -177,13 +202,43 @@ def process_staging_dir():
             except:
                 continue
     
-    print("\nProcessing Grupo-Antolin Alabama")
+    print("\nProcessing Grupo-Antolin Alabama (EDIFACT)")
     filenames = os.listdir(staging_dir)
     if filenames:
         for filename in filenames:
             # Process each file based on customer functions
             try:
                 rename_file_gaalabama(filename)
+            except:
+                continue
+    
+    print("\nProcessing Grupo-Antolin TN/KY (EDIFACT)")
+    filenames = os.listdir(staging_dir)
+    if filenames:
+        for filename in filenames:
+            # Process each file based on customer functions
+            try:
+                rename_file_gatn(filename)
+            except:
+                continue
+    
+    print("\nProcessing Grupo-Antolin Silao (EDIFACT)")
+    filenames = os.listdir(staging_dir)
+    if filenames:
+        for filename in filenames:
+            # Process each file based on customer functions
+            try:
+                rename_file_gasilao(filename)
+            except:
+                continue
+
+    print("\nProcessing Grupo-Antolin St. Clair (EDIFACT)")
+    filenames = os.listdir(staging_dir)
+    if filenames:
+        for filename in filenames:
+            # Process each file based on customer functions
+            try:
+                rename_file_gastclair(filename)
             except:
                 continue
 
@@ -460,7 +515,7 @@ def rename_file_gahowell(filename):
 ###############################################################################
 # Grupo-Antolin Spartanburg (X12) Begin
 ###############################################################################
-def rename_file_gaspartanburg(filename):
+def rename_file_gaspa(filename):
     f = filename  # Raw file name
     f_path = os.path.join(staging_dir, filename)  # file name with path
 
@@ -483,7 +538,7 @@ def rename_file_gaspartanburg(filename):
     if isa != ga_spartanburg_isa:
         return
 
-    new_filename = "GASPARTANBURG" + sep + f_type + sep + f_date + sep + f_idx + f_ext
+    new_filename = "GASPA" + sep + f_type + sep + f_date + sep + f_idx + f_ext
     old_filename = os.path.join(staging_dir, filename)
     new_filename = os.path.join(in_dir, new_filename)
     os.rename(old_filename, new_filename)
@@ -492,11 +547,83 @@ def rename_file_gaspartanburg(filename):
 # Grupo-Antolin Spartanburg End
 ###############################################################################
 
+###############################################################################
+# Grupo-Antolin Marlette (X12) Begin
+###############################################################################
+def rename_file_gamarlette(filename):
+    f = filename  # Raw file name
+    f_path = os.path.join(staging_dir, filename)  # file name with path
+
+    # Check if in ECGrid format.
+    # ECGrid file format: 1027-20201006101520-2e7441af.edi
+    if not f.startswith("1027"):
+        # Not an ECGrid file
+        return
+
+    sep = "-" # File separator
+    f_ext = ".edi"  # File extension
+    f = os.path.splitext(f)[0]  # Strip extension
+    f_list = f.split(sep)  # Make a list from the split    
+    f_date = f_list[1]  # The second piece is the date code
+    f_idx = f_list[2]  # The third piece is the index
+    f_type = get_file_type_x12(f_path)
+
+
+    isa = get_isa_x12(f_path)
+    if isa != ga_marlette_isa:
+        return
+
+    new_filename = "GAMARLETTE" + sep + f_type + sep + f_date + sep + f_idx + f_ext
+    old_filename = os.path.join(staging_dir, filename)
+    new_filename = os.path.join(in_dir, new_filename)
+    os.rename(old_filename, new_filename)
+    print(old_filename + '  >  ' + new_filename)
+###############################################################################
+# Grupo-Antolin Marlette End
+###############################################################################
+
 
 ###############################################################################
 ###############################################################################
 # EDIFACT Format Files
 ###############################################################################
+###############################################################################
+
+###############################################################################
+# Grupo-Antolin Spartanburg (EDIFACT) Begin
+###############################################################################
+def rename_file_gaspa_edifact(filename):
+    f = filename  # Raw file name
+    f_path = os.path.join(staging_dir, filename)  # file name with path
+
+    # Check if in ECGrid format.
+    # ECGrid file format: 1027-20201006101520-2e7441af.edi
+    if not f.startswith("1027"):
+        # Not an ECGrid file
+        return
+
+    sep = "-" # File separator
+    f_ext = ".edi"  # File extension
+    f = os.path.splitext(f)[0]  # Strip extension
+    f_list = f.split(sep)  # Make a list from the split    
+    f_date = f_list[1]  # The second piece is the date code
+    f_idx = f_list[2]  # The third piece is the index
+    f_type = get_file_type_edifact(f_path)
+
+
+    isa = get_isa_edifact(f_path)
+    if isa != ga_spartanburg_isa:
+        return
+
+    new_filename = "GASPA" + sep + f_type + sep + f_date + sep + f_idx + f_ext
+    old_filename = os.path.join(staging_dir, filename)
+    new_filename = os.path.join(in_dir, new_filename)
+    os.rename(old_filename, new_filename)
+    print(old_filename + '  >  ' + new_filename)
+
+
+###############################################################################
+# Grupo-Antolin Spartanburg End
 ###############################################################################
 
 ###############################################################################
@@ -572,6 +699,118 @@ def rename_file_gaalabama(filename):
 ###############################################################################
 # Grupo-Antolin Alabama End
 ###############################################################################
+
+###############################################################################
+# Grupo-Antolin TN/KY (EDIFACT) Begin
+###############################################################################
+def rename_file_gatn(filename):
+    f = filename  # Raw file name
+    f_path = os.path.join(staging_dir, filename)  # file name with path
+
+    # Check if in ECGrid format.
+    # ECGrid file format: 1027-20201006101520-2e7441af.edi
+    if not f.startswith("1027"):
+        # Not an ECGrid file
+        return
+
+    sep = "-" # File separator
+    f_ext = ".edi"  # File extension
+    f = os.path.splitext(f)[0]  # Strip extension
+    f_list = f.split(sep)  # Make a list from the split    
+    f_date = f_list[1]  # The second piece is the date code
+    f_idx = f_list[2]  # The third piece is the index
+    f_type = get_file_type_edifact(f_path)
+
+
+    isa = get_isa_edifact(f_path)
+    if isa != ga_tn_isa:
+        return
+
+    new_filename = "GATN" + sep + f_type + sep + f_date + sep + f_idx + f_ext
+    old_filename = os.path.join(staging_dir, filename)
+    new_filename = os.path.join(in_dir, new_filename)
+    os.rename(old_filename, new_filename)
+    print(old_filename + '  >  ' + new_filename)
+
+
+###############################################################################
+# Grupo-Antolin TN/KY End
+###############################################################################
+
+###############################################################################
+# Grupo-Antolin Silao (EDIFACT) Begin
+###############################################################################
+def rename_file_gasilao(filename):
+    f = filename  # Raw file name
+    f_path = os.path.join(staging_dir, filename)  # file name with path
+
+    # Check if in ECGrid format.
+    # ECGrid file format: 1027-20201006101520-2e7441af.edi
+    if not f.startswith("1027"):
+        # Not an ECGrid file
+        return
+
+    sep = "-" # File separator
+    f_ext = ".edi"  # File extension
+    f = os.path.splitext(f)[0]  # Strip extension
+    f_list = f.split(sep)  # Make a list from the split    
+    f_date = f_list[1]  # The second piece is the date code
+    f_idx = f_list[2]  # The third piece is the index
+    f_type = get_file_type_edifact(f_path)
+
+
+    isa = get_isa_edifact(f_path)
+    if isa != ga_silao_isa:
+        return
+
+    new_filename = "GASILAO" + sep + f_type + sep + f_date + sep + f_idx + f_ext
+    old_filename = os.path.join(staging_dir, filename)
+    new_filename = os.path.join(in_dir, new_filename)
+    os.rename(old_filename, new_filename)
+    print(old_filename + '  >  ' + new_filename)
+
+
+###############################################################################
+# Grupo-Antolin Silao End
+###############################################################################
+
+###############################################################################
+# Grupo-Antolin St. Clair (EDIFACT) Begin
+###############################################################################
+def rename_file_gastclair(filename):
+    f = filename  # Raw file name
+    f_path = os.path.join(staging_dir, filename)  # file name with path
+
+    # Check if in ECGrid format.
+    # ECGrid file format: 1027-20201006101520-2e7441af.edi
+    if not f.startswith("1027"):
+        # Not an ECGrid file
+        return
+
+    sep = "-" # File separator
+    f_ext = ".edi"  # File extension
+    f = os.path.splitext(f)[0]  # Strip extension
+    f_list = f.split(sep)  # Make a list from the split    
+    f_date = f_list[1]  # The second piece is the date code
+    f_idx = f_list[2]  # The third piece is the index
+    f_type = get_file_type_edifact(f_path)
+
+
+    isa = get_isa_edifact(f_path)
+    if isa != ga_stclair_isa:
+        return
+
+    new_filename = "GASTCLAIR" + sep + f_type + sep + f_date + sep + f_idx + f_ext
+    old_filename = os.path.join(staging_dir, filename)
+    new_filename = os.path.join(in_dir, new_filename)
+    os.rename(old_filename, new_filename)
+    print(old_filename + '  >  ' + new_filename)
+
+
+###############################################################################
+# Grupo-Antolin St. Clair End
+###############################################################################
+
 
 if __name__ == '__main__':
     process_staging_dir()
