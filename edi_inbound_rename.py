@@ -28,6 +28,7 @@ ga_tennessee_isa = "GA808659114"
 husqvarna_isa = "HUSQORNGBRG"
 navistar_isa = "781495650"
 owt_isa = "827942173"
+auria_isa = "ONCBUSUPPU"
 
 
 # File Paths are for Windows OS
@@ -35,8 +36,8 @@ base_dir = os.path.join("M:", "\EDI")
 in_dir = os.path.join(base_dir, "IN")
 staging_dir = os.path.join(base_dir, "IN\STAGING")
 # For testing
-in_dir_test = os.path.join(base_dir, "_TEST_IN")
-staging_dir_test = os.path.join(base_dir, "_TEST_STAGING")
+# in_dir_test = os.path.join(base_dir, "_TEST_IN")
+# staging_dir_test = os.path.join(base_dir, "_TEST_STAGING")
 # in_dir = in_dir_test
 # staging_dir = staging_dir_test
 
@@ -59,7 +60,7 @@ def get_sf_segment(file_name):
                 print(i)
                 print(cell)
 
-def get_isa(filename):
+def get_isa_x12(filename):
     with open(filename) as csvfile:
         csvfile = csvfile.read().split("~")
         readCSV = csv.reader(csvfile, delimiter="*")
@@ -120,6 +121,15 @@ def process_staging_dir():
             except:
                 continue
 
+    filenames = os.listdir(staging_dir)
+    if filenames:
+        for filename in filenames:
+            # Process each file based on customer functions
+            try:
+                rename_file_auria(filename)
+            except:
+                continue        
+
         filenames = os.listdir(staging_dir)
     if filenames:
         # Move any files left over
@@ -142,7 +152,7 @@ def move_remaining_files(filename):
 
 
 ###############################################################################
-# Husqvarna Begin
+# Husqvarna (X12) Begin
 ###############################################################################
 def get_ship_from_husq(filename):
     filename = os.path.join(staging_dir, filename)
@@ -183,7 +193,7 @@ def rename_file_husq(filename):
     f_type = get_file_type(f_path)
 
 
-    isa = get_isa(f_path)
+    isa = get_isa_x12(f_path)
     if isa != husqvarna_isa:
         return
 
@@ -205,7 +215,7 @@ def rename_file_husq(filename):
 
 
 ###############################################################################
-# Autoneum Begin
+# Autoneum (X12) Begin
 ###############################################################################
 def rename_file_autoneum(filename):
     # Ship From: 140472
@@ -232,7 +242,7 @@ def rename_file_autoneum(filename):
     f_type = get_file_type(f_path)
 
 
-    isa = get_isa(f_path)
+    isa = get_isa_x12(f_path)
     if isa != autoneum_isa:
         return
 
@@ -247,7 +257,7 @@ def rename_file_autoneum(filename):
 
 
 ###############################################################################
-# Navistar Begin
+# Navistar (X12) Begin
 ###############################################################################
 def rename_file_navistar(filename):
     f = filename  # Raw file name
@@ -268,7 +278,7 @@ def rename_file_navistar(filename):
     f_type = get_file_type(f_path)
 
 
-    isa = get_isa(f_path)
+    isa = get_isa_x12(f_path)
     if isa != navistar_isa:
         return
 
@@ -283,7 +293,7 @@ def rename_file_navistar(filename):
 
 
 ###############################################################################
-# OWT/TTI/Ryobi Begin
+# OWT/TTI/Ryobi (X12) Begin
 ###############################################################################
 def rename_file_owt(filename):
     f = filename  # Raw file name
@@ -304,7 +314,7 @@ def rename_file_owt(filename):
     f_type = get_file_type(f_path)
 
 
-    isa = get_isa(f_path)
+    isa = get_isa_x12(f_path)
     if isa != owt_isa:
         return
 
@@ -316,6 +326,43 @@ def rename_file_owt(filename):
 ###############################################################################
 # OWT/TTI/Ryobi End
 ###############################################################################
+
+
+###############################################################################
+# Auria (X12) Begin
+###############################################################################
+def rename_file_auria(filename):
+    f = filename  # Raw file name
+    f_path = os.path.join(staging_dir, filename)  # file name with path
+
+    # Check if in ECGrid format.
+    # ECGrid file format: 1027-20201006101520-2e7441af.edi
+    if not f.startswith("1027"):
+        # Not an ECGrid file
+        return
+
+    sep = "-" # File separator
+    f_ext = ".edi"  # File extension
+    f = os.path.splitext(f)[0]  # Strip extension
+    f_list = f.split(sep)  # Make a list from the split    
+    f_date = f_list[1]  # The second piece is the date code
+    f_idx = f_list[2]  # The third piece is the index
+    f_type = get_file_type(f_path)
+
+
+    isa = get_isa_x12(f_path)
+    if isa != auria_isa:
+        return
+
+    new_filename = "AURIA" + sep + f_type + sep + f_date + sep + f_idx + f_ext
+    old_filename = os.path.join(staging_dir, filename)
+    new_filename = os.path.join(in_dir, new_filename)
+    os.rename(old_filename, new_filename)
+    print(old_filename + '  >  ' + new_filename)
+###############################################################################
+# Auria End
+###############################################################################
+
 
 if __name__ == '__main__':
     process_staging_dir()
