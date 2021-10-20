@@ -34,7 +34,11 @@ owt_isa = "827942173"
 base_dir = os.path.join("M:", "\EDI")
 in_dir = os.path.join(base_dir, "IN")
 staging_dir = os.path.join(base_dir, "IN\STAGING")
-staging_dir_test = os.path.join(base_dir, "IN\TEST")
+# For testing
+in_dir_test = os.path.join(base_dir, "_TEST_IN")
+staging_dir_test = os.path.join(base_dir, "_TEST_STAGING")
+# in_dir = in_dir_test
+# staging_dir = staging_dir_test
 
 
 def show_segments(file_name):
@@ -104,6 +108,15 @@ def process_staging_dir():
             # Process each file based on customer functions
             try:
                 rename_file_navistar(filename)
+            except:
+                continue
+    
+    filenames = os.listdir(staging_dir)
+    if filenames:
+        for filename in filenames:
+            # Process each file based on customer functions
+            try:
+                rename_file_owt(filename)
             except:
                 continue
 
