@@ -22,6 +22,7 @@ import csv
 
 
 # ISA Codes
+cci_isa = "7062282688"
 autoneum_isa = "GLII006"
 husqvarna_isa = "HUSQORNGBRG"
 navistar_isa = "781495650"
@@ -36,6 +37,10 @@ ga_silao_isa = "GAS9403186J1"
 ga_stclair_isa = "US117778503SCL"
 ga_marlette_isa = "GA132713012"
 
+# Ship To Codes
+AURIA_THM = "02054852"
+AURIA_LEX = "02054851"
+AURIA_HOW = "02054850"
 
 # File Paths are for Windows OS
 base_dir = os.path.join("M:", "\EDI")
@@ -270,6 +275,41 @@ def move_remaining_files(filename):
 ###############################################################################
 
 ###############################################################################
+# CCI (X12) Begin
+###############################################################################
+def rename_file_cci(filename):
+    
+    f = filename  # Raw file name
+    f_path = os.path.join(staging_dir, filename)  # file name with path
+
+    # Check if in CCI format.
+    if not f.startswith("TP"):
+        # Not a CCI file
+        return
+
+    sep = "-" # File separator
+    f_ext = ".edi"  # File extension
+    f = os.path.splitext(f)[0]  # Strip extension
+    f_list = f.split(sep)  # Make a list from the split    
+    f_date = f_list[1]  # The second piece is the date code
+    f_idx = f_list[2]  # The third piece is the index
+    f_type = get_file_type_x12(f_path)
+
+
+    isa = get_isa_x12(f_path)
+    if isa != cci_isa:
+        return
+
+    new_filename = "CCI" + sep + f_type + sep + f_date + sep + f_idx + f_ext
+    old_filename = os.path.join(staging_dir, filename)
+    new_filename = os.path.join(in_dir, new_filename)
+    os.rename(old_filename, new_filename)
+    print(old_filename + '  >  ' + new_filename)
+###############################################################################
+# CCI End
+###############################################################################
+
+###############################################################################
 # Husqvarna (X12) Begin
 ###############################################################################
 def get_ship_from_husq(filename):
@@ -445,6 +485,29 @@ def rename_file_owt(filename):
 ###############################################################################
 # Auria (X12) Begin
 ###############################################################################
+def get_ship_from_auria(filename):
+    filename = os.path.join(staging_dir, filename)
+    with open(filename) as csvfile:
+        csvfile = csvfile.read().split('~')
+        readCSV = csv.reader(csvfile, delimiter='*')
+        for row in readCSV:
+            for idx, cell in enumerate(row):
+                if cell == "SF":
+                    sf_cell = row[idx+3]
+
+    try:
+        if sf_cell == AURIA_HOW:
+            sf = "HOW"
+        if sf_cell == AURIA_LEX:
+            sf = "LEX"
+        if sf_cell == AURIA_THM:
+            sf = "THM"
+    except:
+        print("Ship From not found in file")
+        sf = "MISSING"
+    return sf
+
+
 def rename_file_auria(filename):
     f = filename  # Raw file name
     f_path = os.path.join(staging_dir, filename)  # file name with path
@@ -468,7 +531,7 @@ def rename_file_auria(filename):
     if isa != auria_isa:
         return
 
-    new_filename = "AURIA" + sep + f_type + sep + f_date + sep + f_idx + f_ext
+    new_filename = "AURIA" + sep + sf + sep + f_type + sep + f_date + sep + f_idx + f_ext
     old_filename = os.path.join(staging_dir, filename)
     new_filename = os.path.join(in_dir, new_filename)
     os.rename(old_filename, new_filename)
