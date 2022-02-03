@@ -107,7 +107,7 @@ def process_staging_dir():
     # TODO: Pop renamed files off the filenames stack. Make this one loop.
     print("\nProcessing files in " + staging_dir)
 
-    print("\nProcessing Husqvarna")
+    print("\nProcessing Husqvarna (X12)")
     filenames = os.listdir(staging_dir)
     if filenames:
         for filename in filenames:
@@ -117,7 +117,7 @@ def process_staging_dir():
             except:
                 continue
 
-    print("\nProcessing Autoneum")
+    print("\nProcessing Autoneum (X12)")
     filenames = os.listdir(staging_dir)
     if filenames:
         for filename in filenames:
@@ -127,7 +127,7 @@ def process_staging_dir():
             except:
                 continue
 
-    print("\nProcessing Navistar")
+    print("\nProcessing Navistar (X12)")
     filenames = os.listdir(staging_dir)
     if filenames:
         for filename in filenames:
@@ -136,8 +136,8 @@ def process_staging_dir():
                 rename_file_navistar(filename)
             except:
                 continue
-    
-    print("\nProcessing OWT/Ryobi")
+
+    print("\nProcessing OWT/Ryobi (X12)")
     filenames = os.listdir(staging_dir)
     if filenames:
         for filename in filenames:
@@ -147,7 +147,7 @@ def process_staging_dir():
             except:
                 continue
 
-    print("\nProcessing Auria")
+    print("\nProcessing Auria (X12)")
     filenames = os.listdir(staging_dir)
     if filenames:
         for filename in filenames:
@@ -166,7 +166,7 @@ def process_staging_dir():
                 rename_file_gahowell(filename)
             except:
                 continue
-    
+
     print("\nProcessing Grupo-Antolin Spartanburg (X12)")
     filenames = os.listdir(staging_dir)
     if filenames:
@@ -186,7 +186,7 @@ def process_staging_dir():
                 rename_file_gamarlette(filename)
             except:
                 continue
-    
+
     print("\nProcessing Grupo-Antolin Spartanburg (EDIFACT)")
     filenames = os.listdir(staging_dir)
     if filenames:
@@ -196,7 +196,7 @@ def process_staging_dir():
                 rename_file_gaspa_edifact(filename)
             except:
                 continue
-    
+
     print("\nProcessing Grupo-Antolin Shelby (EDIFACT)")
     filenames = os.listdir(staging_dir)
     if filenames:
@@ -206,7 +206,7 @@ def process_staging_dir():
                 rename_file_gashelby(filename)
             except:
                 continue
-    
+
     print("\nProcessing Grupo-Antolin Alabama (EDIFACT)")
     filenames = os.listdir(staging_dir)
     if filenames:
@@ -216,7 +216,7 @@ def process_staging_dir():
                 rename_file_gaalabama(filename)
             except:
                 continue
-    
+
     print("\nProcessing Grupo-Antolin TN/KY (EDIFACT)")
     filenames = os.listdir(staging_dir)
     if filenames:
@@ -226,7 +226,7 @@ def process_staging_dir():
                 rename_file_gatn(filename)
             except:
                 continue
-    
+
     print("\nProcessing Grupo-Antolin Silao (EDIFACT)")
     filenames = os.listdir(staging_dir)
     if filenames:
