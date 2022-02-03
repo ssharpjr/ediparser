@@ -530,7 +530,7 @@ def rename_file_auria(filename):
     isa = get_isa_x12(f_path)
     if isa != auria_isa:
         return
-
+    sf = get_ship_from_auria(f_path)
     new_filename = "AURIA" + sep + sf + sep + f_type + sep + f_date + sep + f_idx + f_ext
     old_filename = os.path.join(staging_dir, filename)
     new_filename = os.path.join(in_dir, new_filename)
