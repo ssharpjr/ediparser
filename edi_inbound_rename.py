@@ -27,7 +27,8 @@ autoneum_isa = "GLII006"
 husqvarna_isa = "HUSQORNGBRG"
 navistar_isa = "781495650"
 owt_isa = "827942173"
-auria_isa = "ONCBUSUPPU"
+auriaof_isa = "ONCBUSUPPU"
+auriaspa_isa = "SPSSUSUPPU"
 ga_alabama_isa = "US080765057LBM"
 ga_howell_isa = "609284922"
 ga_shelby_isa = "080647135"
@@ -483,7 +484,7 @@ def rename_file_owt(filename):
 ###############################################################################
 
 ###############################################################################
-# Auria (X12) Begin
+# Auria Old Fort (X12) Begin
 ###############################################################################
 def get_ship_from_auria(filename):
     filename = os.path.join(staging_dir, filename)
@@ -528,16 +529,74 @@ def rename_file_auria(filename):
 
 
     isa = get_isa_x12(f_path)
-    if isa != auria_isa:
+    if isa != auriaof_isa:
         return
     sf = get_ship_from_auria(f_path)
-    new_filename = "AURIA" + sep + sf + sep + f_type + sep + f_date + sep + f_idx + f_ext
+    new_filename = "AURIAOF" + sep + sf + sep + f_type + sep + f_date + sep + f_idx + f_ext
     old_filename = os.path.join(staging_dir, filename)
     new_filename = os.path.join(in_dir, new_filename)
     os.rename(old_filename, new_filename)
     print(old_filename + '  >  ' + new_filename)
 ###############################################################################
-# Auria End
+# Auria Old Fort End
+###############################################################################
+
+###############################################################################
+# Auria SPA (X12) Begin
+###############################################################################
+def get_ship_from_auria(filename):
+    filename = os.path.join(staging_dir, filename)
+    with open(filename) as csvfile:
+        csvfile = csvfile.read().split('~')
+        readCSV = csv.reader(csvfile, delimiter='*')
+        for row in readCSV:
+            for idx, cell in enumerate(row):
+                if cell == "SF":
+                    sf_cell = row[idx+3]
+
+    try:
+        if sf_cell == AURIA_HOW:
+            sf = "HOW"
+        if sf_cell == AURIA_LEX:
+            sf = "LEX"
+        if sf_cell == AURIA_THM:
+            sf = "THM"
+    except:
+        print("Ship From not found in file")
+        sf = "MISSING"
+    return sf
+
+
+def rename_file_auria(filename):
+    f = filename  # Raw file name
+    f_path = os.path.join(staging_dir, filename)  # file name with path
+
+    # Check if in ECGrid format.
+    # ECGrid file format: 1027-20201006101520-2e7441af.edi
+    if not f.startswith("1027"):
+        # Not an ECGrid file
+        return
+
+    sep = "-" # File separator
+    f_ext = ".edi"  # File extension
+    f = os.path.splitext(f)[0]  # Strip extension
+    f_list = f.split(sep)  # Make a list from the split    
+    f_date = f_list[1]  # The second piece is the date code
+    f_idx = f_list[2]  # The third piece is the index
+    f_type = get_file_type_x12(f_path)
+
+
+    isa = get_isa_x12(f_path)
+    if isa != auriaspa_isa:
+        return
+    sf = get_ship_from_auria(f_path)
+    new_filename = "AURIASPA" + sep + sf + sep + f_type + sep + f_date + sep + f_idx + f_ext
+    old_filename = os.path.join(staging_dir, filename)
+    new_filename = os.path.join(in_dir, new_filename)
+    os.rename(old_filename, new_filename)
+    print(old_filename + '  >  ' + new_filename)
+###############################################################################
+# Auria SPA End
 ###############################################################################
 
 ###############################################################################
